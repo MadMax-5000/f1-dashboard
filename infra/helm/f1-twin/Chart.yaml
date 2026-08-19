@@ -1,0 +1,35 @@
+apiVersion: v2
+name: f1-twin
+description: F1 Digital Twin - AI-Powered Race Intelligence Platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.28.0-0"
+home: https://f1twin.io
+sources:
+  - https://github.com/your-org/f1-digital-twin
+maintainers:
+  - name: F1 Digital Twin Team
+    email: team@f1twin.io
+dependencies:
+  - name: postgresql
+    version: "~15.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "~19.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: kafka
+    version: "~29.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: kafka.enabled
+  - name: prometheus
+    version: "~25.0"
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus.enabled
+  - name: grafana
+    version: "~8.0"
+    repository: https://grafana.github.io/helm-charts
+    condition: grafana.enabled
+icon: https://raw.githubusercontent.com/your-org/f1-digital-twin/main/docs/logo.svg

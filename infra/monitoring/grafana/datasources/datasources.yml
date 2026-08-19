@@ -1,0 +1,38 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: "5s"
+      queryTimeout: "30s"
+      httpMethod: "POST"
+
+  - name: Jaeger
+    type: jaeger
+    access: proxy
+    url: http://jaeger:16686
+    editable: false
+
+  - name: Postgres
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: f1twin
+    user: f1twin
+    secureJsonData:
+      password: f1twin_dev
+    jsonData:
+      sslmode: "disable"
+      postgresVersion: 1600
+      timescaledb: true
+
+  - name: Redis
+    type: redis-datasource
+    access: proxy
+    url: redis://redis:6379/0
+    editable: false
