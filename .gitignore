@@ -1,55 +1,32 @@
+# Data
+data/raw/
+data/processed/
+data/models/
+data/fastf1_cache/
+
 # Python
 __pycache__/
 *.py[cod]
 *.egg-info/
 dist/
-build/
-*.so
-
-# Virtual environment
 .venv/
 venv/
-env/
-
-# Data
-data/raw/*
-data/processed/*
-data/models/*
-data/simulations/*
-!data/.gitkeep
-
-# Environment
-.env
-.env.*
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-
-# Node
-node_modules/
-.next/
-out/
-
-# ML
-ml/experiments/*
-ml/registries/*
-mlflow/
-wandb/
-
-# Logs
-*.log
-logs/
-
-# Docker
-.docker/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# infra
-*.tfstate
-*.tfstate.backup
+# Frontend
+frontend/node_modules/
+frontend/.next/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Env
+.env
+.env.local

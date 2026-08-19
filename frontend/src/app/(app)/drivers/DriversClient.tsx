@@ -1,91 +1,57 @@
 "use client"
 
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { Card } from "@/components/ui/Card"
-import { Badge } from "@/components/ui/Badge"
-import { TEAM_COLORS } from "@/lib/mock-data"
-import type { ApiDriver } from "@/lib/f1-api"
+import { DriverStanding } from "@/lib/f1-api"
 
-interface Props {
-  drivers: ApiDriver[]
-  headshots: Record<string, string>
-  season: string
+const TEAM_COLORS: Record<string, string> = {
+  red_bull: "bg-blue-600",
+  mclaren: "bg-orange-500",
+  ferrari: "bg-red-600",
+  mercedes: "bg-teal-500",
+  aston_martin: "bg-green-700",
+  alpine: "bg-pink-600",
+  rb: "bg-blue-400",
+  haas: "bg-gray-400",
+  sauber: "bg-green-500",
+  williams: "bg-blue-700",
+  kick_sauber: "bg-green-500",
 }
 
-export default function DriversClient({ drivers, headshots, season }: Props) {
-  return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white mb-1">Drivers</h1>
-        <p className="text-sm text-gray-500">{season} Season &middot; {drivers.length} Drivers</p>
+export default function DriversClient({ drivers }: { drivers: DriverStanding[] }) {
+  if (!drivers.length) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold text-white mb-4">Drivers</h1>
+        <p className="text-gray-400">No driver data available.</p>
       </div>
+    )
+  }
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {drivers.map((driver, i) => {
-          const color = TEAM_COLORS[driver.team] || "#888"
-          return (
-            <motion.div
-              key={driver.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.03, duration: 0.4 }}
-            >
-              <Link href={`/drivers/${driver.id}`}>
-                <Card hover className="relative overflow-hidden">
-                  <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ backgroundColor: color }} />
-                  <div className="flex items-start justify-between mt-2 mb-3">
-                    <div className="flex items-center gap-3">
-                      {headshots[driver.code] ? (
-                        <img
-                          src={headshots[driver.code]}
-                          alt={`${driver.firstName} ${driver.lastName}`}
-                          className="w-14 h-14 rounded-full object-cover bg-white/[0.05]"
-                        />
-                      ) : (
-                        <div
-                          className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-black"
-                          style={{ backgroundColor: `${color}20`, color }}
-                        >
-                          {driver.number}
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-xs text-gray-500">{driver.firstName}</div>
-                        <div className="text-xl font-bold text-white">{driver.lastName}</div>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-black" style={{ color: `${color}40` }}>
-                      {driver.number}
-                    </div>
-                  </div>
+  return (
+    <div className="p-8 space-y-6">
+      <h1 className="text-2xl font-bold text-white">Driver Standings</h1>
 
-                  <Badge variant="team" teamName={driver.team} className="mb-4">
-                    {driver.team}
-                  </Badge>
-
-                  <div className="grid grid-cols-2 gap-2 pt-3 border-t border-white/[0.06]">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-white">{driver.points}</div>
-                      <div className="text-[10px] text-gray-600 uppercase">Points</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-f1-accent">{driver.wins}</div>
-                      <div className="text-[10px] text-gray-600 uppercase">Wins</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.06]">
-                    <span className="text-xs text-gray-600">{driver.nationality}</span>
-                    <span className="text-xs font-bold" style={{ color }}>
-                      P{driver.position}
-                    </span>
-                  </div>
-                </Card>
-              </Link>
-            </motion.div>
-          )
-        })}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {drivers.map((d) => (
+          <div
+            key={d.driverId}
+            className="bg-f1-surface border border-f1-border rounded-xl p-4 flex items-center gap-4"
+          >
+            <div className="text-2xl font-bold text-gray-600 w-10">
+              {d.position}
+            </div>
+            <div className="flex-1">
+              <p className="text-white font-semibold">{d.driver}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <div className={`w-2 h-2 rounded-full ${TEAM_COLORS[d.constructorId] || "bg-gray-500"}`} />
+                <span className="text-gray-400 text-sm">{d.constructor}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-white font-bold text-lg">{d.points}</p>
+              <p className="text-gray-500 text-xs">{d.wins} wins</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )

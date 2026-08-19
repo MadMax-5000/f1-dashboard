@@ -1,155 +1,123 @@
 "use client"
 
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { Flag, Users, MapPin, TrendingUp } from "lucide-react"
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts"
-import { StatCard } from "@/components/ui/StatCard"
-import { Card } from "@/components/ui/Card"
-import { Badge } from "@/components/ui/Badge"
-import { TEAM_COLORS } from "@/lib/mock-data"
-import type { ApiDriver, ApiConstructor, ApiRace } from "@/lib/f1-api"
-
-interface Props {
-  drivers: ApiDriver[]
-  constructors: ApiConstructor[]
-  races: ApiRace[]
-  season: string
+interface Prediction {
+  driver_id: string
+  win_probability: number
+  podium_probability: number
 }
 
-export default function DashboardClient({ drivers, constructors, races, season }: Props) {
-  const standingsData = constructors.slice(0, 8).map((c, i) => ({
-    name: c.name,
-    points: c.points,
-    color: i === 0 ? "#B4FF39" : "#3A3F46",
-  }))
+interface Props {
+  predictions: {
+    race_winner: Prediction[]
+    qualifying: { driver_id: string; predicted_quali_position: number }[]
+  } | null
+}
 
-  const completedRaces = races.filter((r) => r.results.length > 0)
-  const recentRaces = completedRaces.slice(-5).reverse()
+export default function DashboardClient({ predictions }: Props) {
+  if (!predictions) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold text-white mb-4">Race Predictions</h1>
+        <div className="bg-f1-surface border border-f1-border rounded-xl p-6">
+          <p className="text-gray-400">
+            No predictions available. Run the data pipeline and train models first.
+          </p>
+          <pre className="mt-4 text-sm text-gray-500 bg-f1-darker p-4 rounded-lg">
+{`# Collect data
+python -m src.data.collect
+
+# Build features
+python -m src.features.engineering
+
+# Train models
+python -m src.models.race_winner
+python -m src.models.qualifying
+
+# Start API
+uvicorn src.api.app:app --reload`}
+          </pre>
+        </div>
+      </div>
+    )
+  }
+
+  const winners = predictions.race_winner.slice(0, 10)
+  const maxProb = winners[0]?.win_probability || 1
 
   return (
     <div className="p-8 space-y-8">
       <div>
-        <h1 className="display-type mb-1 text-4xl font-semibold text-white">Dashboard</h1>
-        <p className="label-type text-gray-500 uppercase">{season} Season Overview</p>
+        <h1 className="text-2xl font-bold text-white">Next Race Predictions</h1>
+        <p className="text-gray-400 mt-1">Win & podium probabilities from ML models</p>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
-      >
-        <StatCard label="Completed Races" value={completedRaces.length} icon={Flag} subtitle={`${season} Season`} />
-        <StatCard label="Active Drivers" value={drivers.length} icon={Users} subtitle={`${constructors.length} Teams`} />
-        <StatCard label="Total Races" value={races.length} icon={MapPin} subtitle="Calendar" />
-        <StatCard
-          label="Total Wins"
-          value={constructors.reduce((sum, c) => sum + c.wins, 0)}
-          icon={TrendingUp}
-          subtitle="All teams"
-        />
-      </motion.div>
-
-      <div className="grid lg:grid-cols-5 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.5 }}
-          className="lg:col-span-3"
-        >
-          <Card>
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-semibold text-white">Constructor Standings</h2>
-                <p className="label-type mt-1 text-gray-600 uppercase">Points after Round {completedRaces.length}</p>
-              </div>
-              <Link href="/standings" className="label-type text-gray-500 hover:text-f1-accent transition-colors uppercase">
-                View all &rarr;
-              </Link>
-            </div>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={standingsData} layout="vertical" margin={{ left: 10, right: 20 }}>
-                <XAxis type="number" tick={{ fill: "#666", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="name" tick={{ fill: "#aaa", fontSize: 11 }} axisLine={false} tickLine={false} width={85} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "#17191C", border: "1px solid #2A2E35", borderRadius: 10, fontSize: 12 }}
-                  labelStyle={{ color: "#fff" }}
-                  itemStyle={{ color: "#aaa" }}
+      {/* Win Probabilities */}
+      <div className="bg-f1-surface border border-f1-border rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">Win Probability</h2>
+        <div className="space-y-3">
+          {winners.map((p, i) => (
+            <div key={p.driver_id} className="flex items-center gap-4">
+              <span className="text-gray-500 text-sm w-6">{i + 1}</span>
+              <span className="text-white font-medium w-32 capitalize">
+                {p.driver_id.replace("_", " ")}
+              </span>
+              <div className="flex-1 h-6 bg-f1-darker rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-red-600 to-red-400 rounded-full transition-all"
+                  style={{ width: `${(p.win_probability / maxProb) * 100}%` }}
                 />
-                <Bar dataKey="points" radius={[0, 6, 6, 0]} barSize={18}>
-                  {standingsData.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} fillOpacity={0.8} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.5 }}
-          className="lg:col-span-2"
-        >
-          <Card className="h-full">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">Recent Races</h2>
-              <Link href="/races" className="label-type text-gray-500 hover:text-f1-accent transition-colors uppercase">
-                All races &rarr;
-              </Link>
+              </div>
+              <span className="text-white font-mono text-sm w-16 text-right">
+                {(p.win_probability * 100).toFixed(1)}%
+              </span>
             </div>
-            <div className="space-y-3">
-              {recentRaces.map((race) => {
-                const winner = race.results[0]
-                return (
-                  <Link
-                    key={race.id}
-                    href={`/races/${race.round}`}
-                    className="group flex items-center justify-between rounded-[10px] border border-transparent p-3 transition-colors hover:border-f1-border hover:bg-f1-darker"
-                  >
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium text-white transition-colors group-hover:text-f1-accent">
-                        R{race.round} &middot; {race.name}
-                      </div>
-                      <div className="text-xs text-gray-600 mt-0.5">{race.country}</div>
-                    </div>
-                    <div className="text-right shrink-0 ml-3">
-                      <div className="label-type font-semibold text-white">{winner?.driverCode}</div>
-                      <Badge variant="team" teamName={winner?.team} className="mt-0.5">
-                        {winner?.team?.split(" ")[0]}
-                      </Badge>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </Card>
-        </motion.div>
+          ))}
+        </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35, duration: 0.5 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-4"
-      >
-        {[
-          { href: "/races", label: "Race Calendar", desc: "Browse all races", icon: Flag },
-          { href: "/drivers", label: "Driver Profiles", desc: "Stats & performance", icon: Users },
-          { href: "/circuits", label: "Circuit Maps", desc: "Track details", icon: MapPin },
-          { href: "/standings", label: "Championships", desc: "Live standings", icon: TrendingUp },
-        ].map((item) => (
-          <Link key={item.href} href={item.href}>
-            <Card hover className="h-full">
-              <item.icon size={20} className="mb-4 text-f1-accent" />
-              <div className="mb-1 text-base font-semibold text-white">{item.label}</div>
-              <div className="text-sm text-gray-600">{item.desc}</div>
-            </Card>
-          </Link>
-        ))}
-      </motion.div>
+      {/* Podium Probabilities */}
+      <div className="bg-f1-surface border border-f1-border rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-white mb-4">Podium Probability</h2>
+        <div className="space-y-3">
+          {winners.map((p, i) => (
+            <div key={p.driver_id} className="flex items-center gap-4">
+              <span className="text-gray-500 text-sm w-6">{i + 1}</span>
+              <span className="text-white font-medium w-32 capitalize">
+                {p.driver_id.replace("_", " ")}
+              </span>
+              <div className="flex-1 h-6 bg-f1-darker rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full transition-all"
+                  style={{ width: `${p.podium_probability * 100}%` }}
+                />
+              </div>
+              <span className="text-white font-mono text-sm w-16 text-right">
+                {(p.podium_probability * 100).toFixed(1)}%
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Qualifying Predictions */}
+      {predictions.qualifying && (
+        <div className="bg-f1-surface border border-f1-border rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-white mb-4">Predicted Qualifying Order</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {predictions.qualifying.slice(0, 20).map((q, i) => (
+              <div
+                key={q.driver_id}
+                className="flex items-center gap-2 bg-f1-darker rounded-lg px-3 py-2"
+              >
+                <span className="text-gray-500 text-xs font-mono">P{i + 1}</span>
+                <span className="text-white text-sm capitalize">
+                  {q.driver_id.replace("_", " ")}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

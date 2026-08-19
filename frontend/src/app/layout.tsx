@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "F1 Digital Twin",
-  description: "AI-Powered Race Reconstruction, Strategy Analysis & Interactive Replay",
+  title: "F1 Predictions",
+  description: "Machine Learning Predictions for Formula 1",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

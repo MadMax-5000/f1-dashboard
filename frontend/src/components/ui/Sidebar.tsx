@@ -5,21 +5,23 @@ import { usePathname } from "next/navigation"
 import { clsx } from "clsx"
 import {
   LayoutDashboard,
+  Target,
+  Trophy,
+  Activity,
   Flag,
   Users,
-  MapPin,
-  Trophy,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
 import { useState } from "react"
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Predictions", icon: Target },
+  { href: "/championship", label: "Championship", icon: Trophy },
   { href: "/races", label: "Races", icon: Flag },
   { href: "/drivers", label: "Drivers", icon: Users },
-  { href: "/circuits", label: "Circuits", icon: MapPin },
-  { href: "/standings", label: "Standings", icon: Trophy },
+  { href: "/standings", label: "Standings", icon: LayoutDashboard },
+  { href: "/models", label: "Model Performance", icon: Activity },
 ]
 
 export function Sidebar() {
@@ -38,7 +40,7 @@ export function Sidebar() {
         <div className="w-2.5 h-2.5 rounded-full bg-f1-accent animate-pulse-glow shrink-0" />
         {!collapsed && (
           <span className="display-type text-[1rem] font-semibold text-white whitespace-nowrap">
-            F1 <span className="text-gray-400">Twin</span>
+            F1 <span className="text-gray-400">Predict</span>
           </span>
         )}
       </Link>

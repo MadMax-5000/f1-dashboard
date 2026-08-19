@@ -1,81 +1,67 @@
 "use client"
 
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { Calendar, Flag } from "lucide-react"
-import { Card } from "@/components/ui/Card"
-import { Badge } from "@/components/ui/Badge"
-import type { ApiRace } from "@/lib/f1-api"
+import { RaceResult } from "@/lib/f1-api"
 
-interface Props {
-  races: ApiRace[]
-  season: string
-}
-
-export default function RacesClient({ races, season }: Props) {
-  return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white mb-1">Race Calendar</h1>
-        <p className="text-sm text-gray-500">{season} Season &middot; {races.length} Grands Prix</p>
+export default function RacesClient({ races }: { races: RaceResult[] }) {
+  if (!races.length) {
+    return (
+      <div className="p-8">
+        <h1 className="text-2xl font-bold text-white mb-4">Race Results</h1>
+        <p className="text-gray-400">No race data available.</p>
       </div>
+    )
+  }
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {races.map((race, i) => {
-          const hasResults = race.results.length > 0
-          const winner = race.results[0]
-          return (
-            <motion.div
-              key={race.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, duration: 0.4 }}
-            >
-              <Link href={`/races/${race.round}`}>
-                <Card hover className="h-full">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-f1-red">ROUND {race.round}</span>
-                    {race.isSprint && <Badge variant="outline">Sprint</Badge>}
-                    {!hasResults && <Badge variant="outline">Upcoming</Badge>}
+  return (
+    <div className="p-8 space-y-6">
+      <h1 className="text-2xl font-bold text-white">Race Results — {races[0]?.season}</h1>
+
+      <div className="space-y-4">
+        {races.map((race) => (
+          <div key={race.round} className="bg-f1-surface border border-f1-border rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="text-white font-semibold">{race.raceName}</h2>
+                <p className="text-gray-500 text-sm">Round {race.round} • {race.date}</p>
+              </div>
+              <span className="text-gray-500 text-sm">{race.circuitName}</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              {race.results.slice(0, 3).map((r, i) => (
+                <div
+                  key={r.driverId}
+                  className="flex items-center gap-3 bg-f1-darker rounded-lg px-3 py-2"
+                >
+                  <span className={`text-sm font-bold ${
+                    i === 0 ? "text-yellow-400" : i === 1 ? "text-gray-300" : "text-amber-600"
+                  }`}>
+                    P{r.position}
+                  </span>
+                  <span className="text-white text-sm">{r.driver}</span>
+                  <span className="text-gray-500 text-xs ml-auto">{r.constructor}</span>
+                </div>
+              ))}
+            </div>
+
+            <details className="mt-3">
+              <summary className="text-gray-500 text-xs cursor-pointer hover:text-gray-300">
+                Full classification
+              </summary>
+              <div className="mt-2 space-y-1">
+                {race.results.map((r) => (
+                  <div key={r.driverId} className="flex items-center gap-3 text-sm px-2 py-1">
+                    <span className="text-gray-500 w-8">P{r.position}</span>
+                    <span className="text-white flex-1">{r.driver}</span>
+                    <span className="text-gray-500">{r.constructor}</span>
+                    <span className="text-gray-400 w-12 text-right">{r.points} pts</span>
+                    <span className="text-gray-600 w-20 text-right text-xs">{r.status}</span>
                   </div>
-
-                  <h3 className="text-lg font-bold text-white mb-1">{race.name}</h3>
-                  <div className="text-xs text-gray-500 mb-4">
-                    {race.city}, {race.country}
-                  </div>
-
-                  {hasResults && (
-                    <div className="grid grid-cols-2 gap-3 mb-4">
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-white">{race.laps}</div>
-                        <div className="text-[10px] text-gray-600 uppercase">Laps</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-white">{race.results.length}</div>
-                        <div className="text-[10px] text-gray-600 uppercase">Classified</div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
-                    <div className="flex items-center gap-2">
-                      <Calendar size={12} className="text-gray-600" />
-                      <span className="text-xs text-gray-400">{race.date}</span>
-                    </div>
-                    {hasResults && winner && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-gray-600 uppercase">Winner:</span>
-                        <Badge variant="team" teamName={winner.team}>
-                          {winner.driverCode}
-                        </Badge>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </Link>
-            </motion.div>
-          )
-        })}
+                ))}
+              </div>
+            </details>
+          </div>
+        ))}
       </div>
     </div>
   )
